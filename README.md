@@ -21,5 +21,6 @@ The author wants to thank Prof. Klein (Physics Institute of the University of Bo
 The jTDC is provided 'as is', you may use and modify it according to the GNU General Public License ([GNU GPLv3] (http://www.gnu.org/licenses/gpl-3.0.en.html)). Documentation is provided through the [jTDC wiki](https://github.com/jobisoft/jTDC/wiki). If you need further assistence, you may contact the author for additional support.
 
 ## Xilinx Documentatioin
-[(UG472) 7 Series FPGAs Clocking Resources User Guide](https://docs.amd.com/v/u/en-US/ug472_7Series_Clocking)
-[(UG953) Design Suite 7 Series FPGA and Zynq-7000 All Prgrammable SoC Libraries Guide](https://docs.amd.com/v/u/2017.3-English/ug953-vivado-7series-libraries)
+[UG472](https://docs.amd.com/v/u/en-US/ug472_7Series_Clocking) 7 Series FPGAs Clocking Resources User Guide
+
+[UG953](https://docs.amd.com/v/u/2017.3-English/ug953-vivado-7series-libraries)Design Suite 7 Series FPGA and Zynq-7000 All Prgrammable SoC Libraries Guide
