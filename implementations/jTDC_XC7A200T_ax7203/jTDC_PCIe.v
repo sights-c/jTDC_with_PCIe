@@ -9,7 +9,7 @@
 //                                                                                                                                                         
 //////////////////////////////////////////////////////////////////////////////////
 
-module jTDCv6 (
+module jTDC_PCIe (
 
 	inout wire [31:0] D_INT,
 	input wire [15:0] A_INT,
@@ -17,7 +17,8 @@ module jTDCv6 (
 	input wire READ_INT,
 	output wire DTACK_INT,
 
-	input wire CLK,
+	input wire CLK_IN_P,
+	input wire CLK_IN_N,
 
 	inout wire SCL_General,
 	inout wire SDA_General,
@@ -92,14 +93,15 @@ module jTDCv6 (
 
 
 	//-----------------------------------------------------------------------------
-	//-- CLK Setup for Spartan6 ---------------------------------------------------
+	//-- CLK Setup for ax7203(Artix - 7) ---------------------------------------------------
 	//-----------------------------------------------------------------------------
 
 	wire CLKBUS;
 	wire CLK200;
 	wire CLK400;
-	pll_vfb6_400 PLL_TDC (
-		.CLKIN(CLK), 
+	pll_ax7203_400 PLL_TDC (
+		.CLK_IN_P(CLK_IN_P),
+		.CLK_IN_N(CLK_IN_N), 
 		.CLK1(CLKBUS), 
 		.CLK2(CLK200),
 		.CLK4(CLK400));
