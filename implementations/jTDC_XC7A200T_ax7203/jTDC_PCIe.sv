@@ -1,4 +1,4 @@
-`default_nettype wire
+`default_nettype none
 //////////////////////////////////////////////////////////////////////////////////
 //                                                                             
 //  Company: Xi'an Institute of Optics and Precision Mechanics of CAS
