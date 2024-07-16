@@ -13,36 +13,25 @@
 // __primary_________200.000___________0.001
 //----------------------------------------------------------------------------
 
-module pll_vfb6_400 ( CLK_IN_P,
-                      CLK_IN_N,
-                      CLK1,
-                      CLK2,
-                      CLK4 );
-
-	input wire CLK_IN_P;
-  input wire CLK_IN_N;
-	output wire CLK1;
-	output wire CLK2;
-	output wire CLK4;
+module pll_ax7203_400 (
+  input   logic CLK_IN,
+  output  logic CLK1,
+  output  logic CLK2,
+  output  logic CLK4 );
 	
-	wire clkin1;
-	wire clkout0;
-	wire clkout1;
-	wire clkout2;
+	logic clkin1;
+	logic clkout0;
+	logic clkout1;
+	logic clkout2;
 	
 	
   // input buffering
   //------------------------------------
-  IBUFDS sys_clk_ibufgds
-    (
-    .O (clkin1),
-    .I (CLK_IN_P),
-    .IB (CLK_IN_N)
-    );
 
-  wire        locked;
-  wire        clkfbout;
-  wire        clkfbout_buf;
+
+  logic        locked;
+  logic        clkfbout;
+  logic        clkfbout_buf;
 
 // PLLE2_BASE  : In order to incorporate this function into the design,
 //   Verilog   : the following instance declaration needs to be placed
