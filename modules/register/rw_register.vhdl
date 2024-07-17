@@ -34,13 +34,13 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 --use UNISIM.VComponents.all;
 
 entity rw_register is
-   Generic (myaddress: natural := 16#FFFF#);
-   Port (  databus : inout  STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-           addressbus : in  STD_LOGIC_VECTOR (15 downto 0);
-           writesignal : in  STD_LOGIC;
-			  readsignal : in std_logic;
-           CLK : in STD_LOGIC;
-           registerbits : out STD_LOGIC_VECTOR (31 downto 0) := (others => '0')
+	Generic	(	myaddress: natural := 16#0000_FFFF#);
+	Port	(	databus : inout  STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
+				addressbus : in  STD_LOGIC_VECTOR (31 downto 0);
+				writesignal : in  STD_LOGIC;
+				readsignal : in std_logic;
+				busclk : in STD_LOGIC;
+				registerbits : out STD_LOGIC_VECTOR (31 downto 0) := (others => '0')
 	);
 end rw_register;
 
@@ -53,8 +53,8 @@ architecture Behavioral of rw_register is
 begin
 
 	registerbits <= memory;
-	process (CLK) begin
-		if (rising_edge(CLK)) then
+	process (busclk) begin
+		if (rising_edge(busclk)) then
 
 			if (addressbus=myaddress) then
 				if (writesignal='1') then

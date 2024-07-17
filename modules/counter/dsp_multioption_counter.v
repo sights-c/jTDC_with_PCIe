@@ -31,15 +31,15 @@
 //-- clip_reset(1) : sets if the reset signal should be clipped.
 
 
-module dsp_multioption_counter (countClock, count, reset, countout);
-
-	parameter clip_count = 1; 
-	parameter clip_reset = 1;
-	
-	input countClock;
-	input count;
-	input reset;
-	output [31:0] countout;
+module dsp_multioption_counter #(
+	parameter clip_count = 1,
+	parameter clip_reset = 1
+	)(
+	input	wire		countClock,
+	input	wire		count,
+	input	wire		reset,
+	output	wire [31:0]	countout
+	);
    
 	wire [47:0] DSPOUT;
 	wire CARRYOUT;
@@ -156,6 +156,6 @@ module dsp_multioption_counter (countClock, count, reset, countout);
 	end			
 
 	assign countout[30:0] = DSPOUT[47:17];
-   assign countout[31] = overflow;
+   	assign countout[31] = overflow;
 
 endmodule

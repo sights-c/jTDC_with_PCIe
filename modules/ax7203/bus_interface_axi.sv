@@ -1,80 +1,91 @@
+`default_nettype none
+// -------------------------------------------------------------------------
+// ----                                                                 ----
+// ---- Engineer: Ri-Guang Chen                                         ----
+// ---- Company : Xi'an Institute of Optics and Precision Mechanics     ----
+// ----                                                                 ----
+// ---- Target Devices: Ailinx ax7203 Analog Front-End                  ----
+// ---- Description   : axi-lite interface for xdma                     ----
+// ----                                                                 ----
+// -------------------------------------------------------------------------
+// ----                                                                 ----
+// ---- Copyright (C) 2024 Ri-Guang Chen                                ----
+// ----                                                                 ----
+// ---- This program is free software; you can redistribute it and/or   ----
+// ---- modify it under the terms of the GNU General Public License as  ----
+// ---- published by the Free Software Foundation; either version 3 of  ----
+// ---- the License, or (at your option) any later version.             ----
+// ----                                                                 ----
+// ---- This program is distributed in the hope that it will be useful, ----
+// ---- but WITHOUT ANY WARRANTY; without even the implied warranty of  ----
+// ---- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the    ----
+// ---- GNU General Public License for more details.                    ----
+// ----                                                                 ----
+// ---- You should have received a copy of the GNU General Public       ----
+// ---- License along with this program; if not, see                    ----
+// ---- <http://www.gnu.org/licenses>.                                  ----
+// ----                                                                 ----
+// -------------------------------------------------------------------------
 module bus_interface_axi #(
     parameter AXI_AWIDTH   = 64,
     parameter AXI_DWIDTH   = 64,
     parameter AXI_IDWIDTH  = 4
 ) (
     // Internal interface
-    input   logic [             31:0]   statusregister,
-    inout   logic [             31:0]   databus,
-    output  logic [             15:0]   addressbus,
-    output  logic						readsignal,
-    output  logic						writesignal,
+    input   wire [31:0] statusregister,
+    inout   wire [31:0]	databus,
+    output  wire [31:0]	addressbus,
+    output  wire        readsignal,
+    output  wire        writesignal,
     // AXI configuration
-    input   logic						axi_aclk,
-    input   logic						axi_aresetn,
+    input   wire        axi_aclk,
+    input   wire        axi_aresetn,
     // AXI-MM AW interface
-    output  logic						axi_awready,
-    input   logic						axi_awvalid,
-    input   logic [    AXI_AWIDTH-1:0]	axi_awaddr,
-    input   logic [               7:0]	axi_awlen,
-    input   logic [   AXI_IDWIDTH-1:0]	axi_awid,
+    output  wire        axil_awready,
+    input   wire        axil_awvalid,
+    input   wire [31:0] axil_awaddr,
+    input   wire [ 2:0] axil_awprot,
     // AXI-MM W  interface
-    output  logic						axi_wready,
-    input   logic						axi_wvalid,
-    input   logic						axi_wlast,
-    input   logic [    AXI_DWIDTH-1:0]	axi_wdata,
-    input   logic [(AXI_DWIDTH/8)-1:0]	axi_wstrb,
+    output  wire		axil_wready,
+    input   wire		axil_wvalid,
+    input   wire [31:0] axil_wdata,
+    input   wire [ 3:0]	axil_wstrb,
     // AXI-MM B  interface
-    input   logic						axi_bready,
-    output  logic						axi_bvalid,
-    output  logic [   AXI_IDWIDTH-1:0]	axi_bid,
-    output  logic [               1:0]	axi_bresp,
+    input   wire		axil_bready,
+    output  wire		axil_bvalid,
+    output  wire [1:0]	axil_bresp,
     // AXI-MM AR interface
-    output  logic						axi_arready,
-    input   logic						axi_arvalid,
-    input   logic [    AXI_AWIDTH-1:0]	axi_araddr,
-    input   logic [               7:0]	axi_arlen,
-    input   logic [   AXI_IDWIDTH-1:0]	axi_arid,
+    output  wire		axil_arready,
+    input   wire		axil_arvalid,
+    input   wire [31:0]	axil_araddr,
+    input   wire [ 2:0] axil_arprot,
     // AXI-MM R  interface
-    input   logic                       axi_rready,
-    output  logic                       axi_rvalid,
-    output  logic                       axi_rlast,
-    output  logic [    AXI_DWIDTH-1:0]  axi_rdata,
-    output  logic [   AXI_IDWIDTH-1:0]  axi_rid,
-    output  logic [               1:0]  axi_rresp 
+    input   wire		axil_rready,
+    output  wire		axil_rvalid,
+    output  wire [31:0] axil_rdata,
+    output  wire [ 1:0] axil_rresp 
 );
 
 // Read Channels --------------------------------------------------
 enum logic [0:0]    { R_IDLE, R_BUSY }  r_state =   R_IDLE;
 
-logic   [AXI_IDWIDTH-1:0]   rid     = '0;
-logic   [7:0]               rcount  = '0;
-
-assign axi_arready    = (r_state == R_IDLE);
-assign axi_rvalid     = (r_state == R_BUSY);
-assign axi_rlast      = (r_state == R_BUSY && rcount == 8'd0);
-assign axi_rid        = rid;
-assign axi_rresp      = '0;
+assign axil_arready    = (r_state == R_IDLE && w_state == W_IDLE && !axil_awvalid);
+assign axil_rvalid     = (r_state == R_BUSY);
+assign axil_rresp      = '0;
 
 // Read finite-state machine --------------------------------------------------
-always_ff @( posedge axi_aclk) begin : fsm_read
+always_ff @( posedge axi_aclk) begin
     if(!axi_aresetn) begin
         r_state <= R_IDLE;
-        rid     <= '0;
-        rcount  <= '0;
     end else begin
         case(r_state)
         R_IDLE:
-            if(axi_arvalid) begin
+            if(axil_arvalid) begin
                 r_state <= R_BUSY;
-                rid     <= axi_arid;
-                rcount  <= axi_arlen;
             end
         R_BUSY:
-            if(axi_rready) begin
-                if(rcount == 'b0)
-                    r_state <= R_IDLE;
-                rcount <= rcount - 8'd1;
+            if(axil_rready) begin
+                r_state <= R_IDLE;
             end
         default:
             r_state <= R_IDLE;
@@ -83,42 +94,44 @@ always_ff @( posedge axi_aclk) begin : fsm_read
 end
 
 // Read data --------------------------------------------------
+reg [31:0] addressbus_last;
+always_comb begin
+    if      (r_state == R_IDLE && axil_arvalid)
+        addressbus   = (32)'(axil_araddr >> 'b10_0000);
+    else if (r_state == R_BUSY && axil_rready)
+        addressbus   = addressbus_last;
+    else
+        addressbus   = 'z;
+end
 
+always_ff @( posedge axi_aclk ) begin
+    addressbus_last <= addressbus;
+end
 
 // Write channels --------------------------------------------------
 enum logic [1:0]    { W_IDLE, W_BUSY, W_RESP }  w_state =   W_IDLE;
 
-logic   [AXI_IDWIDTH-1:0]   wid         = '0;
-logic   [7:0]               wcount      = '0;
-
-assign axi_awready    = (w_state == W_IDLE);
-assign axi_wready     = (w_state == W_BUSY);
-assign axi_bvalid     = (w_state == W_RESP);
-assign axi_bid        = wid;
-assign axi_bresp      = '0;
+assign axil_awready    = (r_state == R_IDLE && w_state == W_IDLE);
+assign axil_wready     = (w_state == W_BUSY);
+assign axil_bvalid     = (w_state == W_RESP);
+assign axil_bresp      = '0;
 
 // Write finite-state machine --------------------------------------------------
 always_ff @( posedge axi_aclk) begin : fsm_write
     if(!axi_aresetn) begin
         w_state  <= W_IDLE;
-        wid      <= '0;
-        wcount   <= '0;
     end else begin
         case(w_state)
         W_IDLE:
-            if(axi_awvalid) begin
+            if(axil_awvalid) begin
                 w_state     <= W_BUSY;
-                wid         <= axi_awid;
-                wcount      <= axi_awlen;
             end
         W_BUSY:
-            if(axi_wvalid) begin
-                if(wcount == 'b0 || axi_wlast)
-                    w_state <= W_RESP;
-                wcount <= wcount - 'b1;
+            if(axil_wvalid) begin
+                w_state <= W_RESP;
             end
         W_RESP:
-            if(axi_bready) begin
+            if(axil_bready) begin
                 w_state <= W_IDLE;
             end
         default:
@@ -126,14 +139,5 @@ always_ff @( posedge axi_aclk) begin : fsm_write
         endcase
     end
 end
-    
-function automatic int log2(input int x);
-    int xtmp = x, y = 0;
-    while (xtmp != 0) begin
-        y ++;
-        xtmp >>= 1;
-    end
-    return (y==0) ? 0 : (y-1);
-endfunction
-
+  
 endmodule
