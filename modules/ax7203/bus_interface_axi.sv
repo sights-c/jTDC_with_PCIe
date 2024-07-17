@@ -1,4 +1,3 @@
-`default_nettype none
 // -------------------------------------------------------------------------
 // ----                                                                 ----
 // ---- Engineer: Ri-Guang Chen                                         ----
@@ -26,50 +25,47 @@
 // ---- <http://www.gnu.org/licenses>.                                  ----
 // ----                                                                 ----
 // -------------------------------------------------------------------------
-module bus_interface_axi #(
-    parameter AXI_AWIDTH   = 64,
-    parameter AXI_DWIDTH   = 64,
-    parameter AXI_IDWIDTH  = 4
-) (
+module bus_interface_axi (
     // Internal interface
-    input   wire [31:0] statusregister,
-    inout   wire [31:0]	databus,
-    output  wire [31:0]	addressbus,
-    output  wire        readsignal,
-    output  wire        writesignal,
+    input	wire	[31:0]	statusregister,
+    inout	wire	[31:0]	databus,
+    output  reg     [15:0]	addressbus,
+    output	reg 			readsignal,
+    output	reg 			writesignal,
     // AXI configuration
-    input   wire        axi_aclk,
-    input   wire        axi_aresetn,
+    input	wire			axi_aclk,
+    input	wire			axi_aresetn,
     // AXI-MM AW interface
-    output  wire        axil_awready,
-    input   wire        axil_awvalid,
-    input   wire [31:0] axil_awaddr,
-    input   wire [ 2:0] axil_awprot,
+    output	wire			axil_awready,
+    input	wire			axil_awvalid,
+    input	wire	[31:0]	axil_awaddr,
+    input	wire	[ 2:0]	axil_awprot,
     // AXI-MM W  interface
-    output  wire		axil_wready,
-    input   wire		axil_wvalid,
-    input   wire [31:0] axil_wdata,
-    input   wire [ 3:0]	axil_wstrb,
+    output	wire			axil_wready,
+    input	wire			axil_wvalid,
+    input	wire	[31:0]	axil_wdata,
+    input	wire	[ 3:0]	axil_wstrb,
     // AXI-MM B  interface
-    input   wire		axil_bready,
-    output  wire		axil_bvalid,
-    output  wire [1:0]	axil_bresp,
+    input	wire			axil_bready,
+    output	wire			axil_bvalid,
+    output	wire	[1:0]	axil_bresp,
     // AXI-MM AR interface
-    output  wire		axil_arready,
-    input   wire		axil_arvalid,
-    input   wire [31:0]	axil_araddr,
-    input   wire [ 2:0] axil_arprot,
+    output	wire			axil_arready,
+    input	wire			axil_arvalid,
+    input	wire	[31:0]	axil_araddr,
+    input	wire	[ 2:0]	axil_arprot,
     // AXI-MM R  interface
-    input   wire		axil_rready,
-    output  wire		axil_rvalid,
-    output  wire [31:0] axil_rdata,
-    output  wire [ 1:0] axil_rresp 
+    input	wire			axil_rready,
+    output	wire			axil_rvalid,
+    output	reg     [31:0]	axil_rdata,
+    output	wire	[ 1:0]	axil_rresp 
 );
 
 // Read Channels --------------------------------------------------
-enum logic [0:0]    { R_IDLE, R_BUSY }  r_state =   R_IDLE;
+     reg    [31:0]  test_register;
+enum reg    [ 0:0]  { R_IDLE, R_BUSY }  r_state =   R_IDLE;
 
-assign axil_arready    = (r_state == R_IDLE && w_state == W_IDLE && !axil_awvalid);
+assign axil_arready    = (r_state == R_IDLE);
 assign axil_rvalid     = (r_state == R_BUSY);
 assign axil_rresp      = '0;
 
@@ -77,10 +73,11 @@ assign axil_rresp      = '0;
 always_ff @( posedge axi_aclk) begin
     if(!axi_aresetn) begin
         r_state <= R_IDLE;
+        test_register <= 32'h0000_7203;
     end else begin
         case(r_state)
         R_IDLE:
-            if(axil_arvalid) begin
+            if( w_state == W_IDLE) begin
                 r_state <= R_BUSY;
             end
         R_BUSY:
@@ -93,38 +90,23 @@ always_ff @( posedge axi_aclk) begin
     end
 end
 
-// Read data --------------------------------------------------
-reg [31:0] addressbus_last;
-always_comb begin
-    if      (r_state == R_IDLE && axil_arvalid)
-        addressbus   = (32)'(axil_araddr >> 'b10_0000);
-    else if (r_state == R_BUSY && axil_rready)
-        addressbus   = addressbus_last;
-    else
-        addressbus   = 'z;
-end
-
-always_ff @( posedge axi_aclk ) begin
-    addressbus_last <= addressbus;
-end
-
 // Write channels --------------------------------------------------
-enum logic [1:0]    { W_IDLE, W_BUSY, W_RESP }  w_state =   W_IDLE;
+enum    [1:0]   { W_IDLE, W_BUSY, W_RESP }  w_state =   W_IDLE;
 
-assign axil_awready    = (r_state == R_IDLE && w_state == W_IDLE);
+assign axil_awready    = (r_state == R_IDLE);
 assign axil_wready     = (w_state == W_BUSY);
 assign axil_bvalid     = (w_state == W_RESP);
 assign axil_bresp      = '0;
 
 // Write finite-state machine --------------------------------------------------
-always_ff @( posedge axi_aclk) begin : fsm_write
+always_ff @( posedge axi_aclk) begin
     if(!axi_aresetn) begin
         w_state  <= W_IDLE;
     end else begin
         case(w_state)
         W_IDLE:
             if(axil_awvalid) begin
-                w_state     <= W_BUSY;
+                w_state <= W_BUSY;
             end
         W_BUSY:
             if(axil_wvalid) begin
@@ -140,4 +122,53 @@ always_ff @( posedge axi_aclk) begin : fsm_write
     end
 end
   
+// Internal Bus --------------------------------------------------
+
+
+
+reg [15:0] addressbus_last;
+always_comb begin
+    if (w_state == W_IDLE && r_state == R_IDLE && axil_awvalid) begin
+        addressbus   = axil_awaddr[31:16];
+        writesignal  = '0;
+        readsignal   = '0;
+        axil_rdata   = '0;
+    end else if (w_state == W_IDLE && r_state == R_IDLE && axil_arvalid) begin
+        addressbus   = axil_araddr[31:16];
+        writesignal  = '0;
+        case (axil_araddr)
+            32'h0000_0010:  begin
+                axil_rdata  = statusregister;
+                readsignal   = '0;
+            end
+            32'h7203_0000:  begin
+                axil_rdata  = test_register;
+                readsignal   = '0;
+            end
+                  default:  begin
+                axil_rdata  = databus;
+                readsignal   = '1;
+            end
+        endcase
+    end else if (r_state == R_BUSY || w_state == W_BUSY) begin
+        addressbus   = addressbus_last;
+        writesignal  = (w_state == W_BUSY) && (r_state != R_BUSY);
+        readsignal   = (w_state != W_BUSY) && (r_state == R_BUSY);
+        axil_rdata   = (w_state != W_BUSY) && (r_state == R_BUSY) ? databus : '0;
+    end else begin
+        addressbus   = 'z;
+        writesignal  = 'z;
+        readsignal   = 'z;
+        axil_rdata   = '0;
+    end
+end
+
+always_ff @( posedge axi_aclk ) begin
+    addressbus_last = addressbus;
+end
+
+assign  databus =   (w_state == W_BUSY && axil_wvalid && axil_awaddr == 32'h7203_0000) ? test_register :
+                    (w_state == W_BUSY && axil_wvalid) ? axil_wdata :
+                    'z;
+
 endmodule

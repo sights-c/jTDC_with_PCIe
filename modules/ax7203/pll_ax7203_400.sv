@@ -22,13 +22,15 @@ module pll_ax7203_400 (
 	logic clkout1;
 	
 	
-  // input buffering
-  //------------------------------------
+// input buffering ------------------------------------
+IBUFG clkin1_buf (
+  .O (clkin1),
+  .I (CLK_IN));
 
 
-  logic        locked;
-  logic        clkfbout;
-  logic        clkfbout_buf;
+  logic locked;
+  logic clkfbout;
+  logic clkfbout_buf;
 
 // PLLE2_BASE  : In order to incorporate this function into the design,
 //   Verilog   : the following instance declaration needs to be placed

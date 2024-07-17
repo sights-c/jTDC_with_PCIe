@@ -11,8 +11,8 @@
 
 module  jTDC_PCIe #(
 	// Basic Setup
-	parameter Board_ID 			= 32'h7203,
-	parameter fw 				= 8'h22,
+	parameter Board_ID 			= 18'h7203,
+	parameter fw 				= 8'h22
 
 	// parameter resolution 		= 2,	//readout every second carry step
 	// parameter bits 				= 96,	//empirical value for resolution=2 on VFB6
@@ -22,30 +22,25 @@ module  jTDC_PCIe #(
 
 	// parameter tdc_channels 		= 32,	//number of tdc channels (max 100, see mapping below)
 	// parameter scaler_channels 	= 32,	//number of scaler channels
-
-	parameter PCIE_LANES 		= 1,
-	parameter AXI_AWIDTH   		= 32,
-	parameter AXI_DWIDTH   		= 32,
-	parameter AXI_IDWIDTH  		= 4
 	)(
-	input	wire 					brd_clkp,
-	input	wire 					brd_clkn,
-	input	wire 					brd_rst_n,
+	input	wire 		brd_clkp,
+	input	wire 		brd_clkn,
+	input	wire 		brd_rst_n,
 
-	input	wire 					pcie_refclkp,
-	input	wire 					pcie_refclkn,
-	input	wire 					pcie_rst_n,
-	input   wire [PCIE_LANES-1:0]	pcie_rxp, 
-	input   wire [PCIE_LANES-1:0]	pcie_rxn,
-    output  wire [PCIE_LANES-1:0]	pcie_txp, 
-	output  wire [PCIE_LANES-1:0]	pcie_txn,
+	input	wire 		pcie_refclkp,
+	input	wire 		pcie_refclkn,
+	input	wire 		pcie_rst_n,
+	input   wire [0:0]	pcie_rxp, 
+	input   wire [0:0]	pcie_rxn,
+    output  wire [0:0]	pcie_txp, 
+	output  wire [0:0]	pcie_txn,
 
-	// input	wire					nim_in,
-	// output	wire					nim_out,
+	// input	wire		nim_in,
+	// output	wire		nim_out,
 	
-	// input	wire [63:0]				afe_pin,
+	// input	wire [63:0]	afe_pin,
 
-	output	wire [3:0] 				user_led
+	output	wire [3:0] 	user_led
 );
 	genvar i;
 
@@ -90,16 +85,16 @@ module  jTDC_PCIe #(
 
 
 
-
 //---------------------------------------------------------------------------------
 //-- PCIe Setup for ax7203 board
 //---------------------------------------------------------------------------------
 	logic			pcie_refclk;
-    logic			pcie_rst_n_buf;
+	logic			pcie_rst_n_buf;
 
-	logic			axil_aclk;
-	logic			axil_aresetn;
+	logic			axi_aclk;
+    logic			axi_aresetn;
 
+// AXI-Lite
 	logic			axil_awready;
 	logic			axil_awvalid;
 	logic	[31:0]	axil_awaddr;
@@ -158,69 +153,69 @@ xdma_0 #(
 	.axi_aclk			    (axi_aclk),			    // output wire axi_aclk
 	.axi_aresetn			(axi_aresetn),			// output wire axi_aresetn
 	// axi aw interface
-	.m_axi_awready		    (),				// input wire m_axi_awready
-	.m_axi_awid			    (),		    	// output wire [3 : 0] m_axi_awid
-	.m_axi_awaddr			(),				// output wire [63 : 0] m_axi_awaddr
-	.m_axi_awlen			(),				// output wire [7 : 0] m_axi_awlen
-	.m_axi_awvalid		    (),				// output wire m_axi_awvalid
-	.m_axi_awsize			(),				// output wire [2 : 0] m_axi_awsize
-	.m_axi_awburst			(),				// output wire [1 : 0] m_axi_awburst
-	.m_axi_awprot			(),				// output wire [2 : 0] m_axi_awprot
-	.m_axi_awlock			(),				// output wire m_axi_awlock
-	.m_axi_awcache			(),				// output wire [3 : 0] m_axi_awcache
+	.m_axi_awready		    ('0),						// input wire m_axi_awready
+	.m_axi_awid			    (),						// output wire [3 : 0] m_axi_awid
+	.m_axi_awaddr			(),						// output wire [63 : 0] m_axi_awaddr
+	.m_axi_awlen			(),						// output wire [7 : 0] m_axi_awlen
+	.m_axi_awvalid		    (),						// output wire m_axi_awvalid
+	.m_axi_awsize			(),						// output wire [2 : 0] m_axi_awsize
+	.m_axi_awburst			(),						// output wire [1 : 0] m_axi_awburst
+	.m_axi_awprot			(),						// output wire [2 : 0] m_axi_awprot
+	.m_axi_awlock			(),						// output wire m_axi_awlock
+	.m_axi_awcache			(),						// output wire [3 : 0] m_axi_awcache
 	// axi w interface
-	.m_axi_wready			(),				// input wire m_axi_wready
-	.m_axi_wvalid			(),				// output wire m_axi_wvalid
-	.m_axi_wdata			(),				// output wire [63 : 0] m_axi_wdata
-	.m_axi_wlast			(),				// output wire m_axi_wlast
-	.m_axi_wstrb			(),				// output wire [7 : 0] m_axi_wstrb
+	.m_axi_wready			('0),						// input wire m_axi_wready
+	.m_axi_wvalid			(),						// output wire m_axi_wvalid
+	.m_axi_wdata			(),						// output wire [63 : 0] m_axi_wdata
+	.m_axi_wlast			(),						// output wire m_axi_wlast
+	.m_axi_wstrb			(),						// output wire [7 : 0] m_axi_wstrb
 	// axi b interface
-	.m_axi_bvalid			(),				// input wire m_axi_bvalid
-	.m_axi_bready			(),				// output wire m_axi_bready
-	.m_axi_bid			    (),			    // input wire [3 : 0] m_axi_bid
-	.m_axi_bresp			(),				// input wire [1 : 0] m_axi_bresp
+	.m_axi_bvalid			('0),						// input wire m_axi_bvalid
+	.m_axi_bready			(),						// output wire m_axi_bready
+	.m_axi_bid			    ('0),						// input wire [3 : 0] m_axi_bid
+	.m_axi_bresp			('0),						// input wire [1 : 0] m_axi_bresp
 	// axi ar interface
-	.m_axi_arready		    (),				// input wire m_axi_arready
-	.m_axi_arvalid		    (),				// output wire m_axi_arvalid
-	.m_axi_araddr			(),				// output wire [63 : 0] m_axi_araddr
-	.m_axi_arlen			(),				// output wire [7 : 0] m_axi_arlen
-	.m_axi_arid			    (),		    	// output wire [3 : 0] m_axi_arid
-	.m_axi_arsize			(),				// output wire [2 : 0] m_axi_arsize
-	.m_axi_arburst			(),				// output wire [1 : 0] m_axi_arburst
-	.m_axi_arprot			(),				// output wire [2 : 0] m_axi_arprot
-	.m_axi_arlock			(),				// output wire m_axi_arlock
-	.m_axi_arcache			(),				// output wire [3 : 0] m_axi_arcache
+	.m_axi_arready		    ('0),						// input wire m_axi_arready
+	.m_axi_arvalid		    (),						// output wire m_axi_arvalid
+	.m_axi_araddr			(),						// output wire [63 : 0] m_axi_araddr
+	.m_axi_arlen			(),						// output wire [7 : 0] m_axi_arlen
+	.m_axi_arid			    (),						// output wire [3 : 0] m_axi_arid
+	.m_axi_arsize			(),						// output wire [2 : 0] m_axi_arsize
+	.m_axi_arburst			(),						// output wire [1 : 0] m_axi_arburst
+	.m_axi_arprot			(),						// output wire [2 : 0] m_axi_arprot
+	.m_axi_arlock			(),						// output wire m_axi_arlock
+	.m_axi_arcache			(),						// output wire [3 : 0] m_axi_arcache
 	// axi r interface
-	.m_axi_rready			(),				// output wire m_axi_rready
-	.m_axi_rvalid			(),				// input wire m_axi_rvalid
-	.m_axi_rlast			(),				// input wire m_axi_rlast
-	.m_axi_rdata			(),				// input wire [63 : 0] m_axi_rdata
-	.m_axi_rid			    (),		    	// input wire [3 : 0] m_axi_rid
-	.m_axi_rresp			(),             // input wire [1 : 0] m_axi_rresp
+	.m_axi_rready			(),						// output wire m_axi_rready
+	.m_axi_rvalid			('0),						// input wire m_axi_rvalid
+	.m_axi_rlast			('0),						// input wire m_axi_rlast
+	.m_axi_rdata			('0),						// input wire [63 : 0] m_axi_rdata
+	.m_axi_rid			    ('0),						// input wire [3 : 0] m_axi_rid
+	.m_axi_rresp			('0),						// input wire [1 : 0] m_axi_rresp
 	// axi-lite aw interface
-	.m_axil_awaddr			(axil_awaddr),	// output wire [31 : 0] m_axil_awaddr
-	.m_axil_awprot			(axil_awprot),	// output wire [2 : 0] m_axil_awprot
-	.m_axil_awvalid			(axil_awvalid),	// output wire m_axil_awvalid
-	.m_axil_awready			(axil_awready),	// input wire m_axil_awready
+	.m_axil_awaddr			(axil_awaddr),			// output wire [31 : 0] m_axil_awaddr
+	.m_axil_awprot			(axil_awprot),			// output wire [2 : 0] m_axil_awprot
+	.m_axil_awvalid			(axil_awvalid),			// output wire m_axil_awvalid
+	.m_axil_awready			(axil_awready),			// input wire m_axil_awready
 	// axi-lite w interface
-	.m_axil_wdata			(axil_wdata),	// output wire [31 : 0] m_axil_wdata
-	.m_axil_wstrb			(axil_wstrb),	// output wire [3 : 0] m_axil_wstrb
-	.m_axil_wvalid			(axil_wvalid),	// output wire m_axil_wvalid
-	.m_axil_wready			(axil_wready),	// input wire m_axil_wready
+	.m_axil_wdata			(axil_wdata),			// output wire [31 : 0] m_axil_wdata
+	.m_axil_wstrb			(axil_wstrb),			// output wire [3 : 0] m_axil_wstrb
+	.m_axil_wvalid			(axil_wvalid),			// output wire m_axil_wvalid
+	.m_axil_wready			(axil_wready),			// input wire m_axil_wready
 	// axi-lite b interface
-	.m_axil_bvalid			(axil_bvalid),	// input wire m_axil_bvalid
-	.m_axil_bresp			(axil_bresp),	// input wire [1 : 0] m_axil_bresp
-	.m_axil_bready			(axil_bready),	// output wire m_axil_bready
+	.m_axil_bvalid			(axil_bvalid),			// input wire m_axil_bvalid
+	.m_axil_bresp			(axil_bresp),			// input wire [1 : 0] m_axil_bresp
+	.m_axil_bready			(axil_bready),			// output wire m_axil_bready
 	// axi-lite ar interface
-	.m_axil_araddr			(axil_araddr),	// output wire [31 : 0] m_axil_araddr
-	.m_axil_arprot			(axil_arprot),	// output wire [2 : 0] m_axil_arprot
-	.m_axil_arvalid			(axil_arvalid),	// output wire m_axil_arvalid
-	.m_axil_arready			(axil_arready),	// input wire m_axil_arready
+	.m_axil_araddr			(axil_araddr),			// output wire [31 : 0] m_axil_araddr
+	.m_axil_arprot			(axil_arprot),			// output wire [2 : 0] m_axil_arprot
+	.m_axil_arvalid			(axil_arvalid),			// output wire m_axil_arvalid
+	.m_axil_arready			(axil_arready),			// input wire m_axil_arready
 	// axi-lite r interface
-	.m_axil_rdata			(axil_rdata),	// input wire [31 : 0] m_axil_rdata
-	.m_axil_rresp			(axil_rresp),	// input wire [1 : 0] m_axil_rresp
-	.m_axil_rvalid			(axil_rvalid),	// input wire m_axil_rvalid
-	.m_axil_rready			(axil_rready)	// output wire m_axil_rready
+	.m_axil_rdata			(axil_rdata),			// input wire [31 : 0] m_axil_rdata
+	.m_axil_rresp			(axil_rresp),			// input wire [1 : 0] m_axil_rresp
+	.m_axil_rvalid			(axil_rvalid),			// input wire m_axil_rvalid
+	.m_axil_rready			(axil_rready)			// output wire m_axil_rready
 );
 
 
@@ -231,18 +226,17 @@ xdma_0 #(
 //-- AXI-BUS Setup for ax7203 board -----------------------------------------------
 //---------------------------------------------------------------------------------
 
-	logic [AXI_DWIDTH-1:0]	statusregister;
-	logic [AXI_DWIDTH-1:0]	databus;
-	logic [AXI_AWIDTH-1:0]	addressbus;
-	logic 					readsignal;
-	logic 					writesignal;
+	wire [31:0]	statusregister;
+	wire [31:0]	databus;
+	wire [31:0]	addressbus;
+	wire		readsignal;
+	wire		writesignal;
 
-	assign statusregister [15:0]	= 16'h0001;		//-- Firmware version
-	assign statusregister [31:16]	= 16'h0001;		//-- Firmware type
-	assign statusregister [63:32]	= Board_ID;		//-- Board type
+	assign statusregister [ 7: 0]	= 8'h01;		//-- Firmware version
+	assign statusregister [13: 8]	= 6'h01;		//-- Firmware type
+	assign statusregister [31:14]	= Board_ID;		//-- Board type
 	
 	bus_interface_axi axi_interface (
-		.axi_aclk(busclk),
 		.*
 	);
 
@@ -254,7 +248,7 @@ xdma_0 #(
 	//-- AXI Control Register ------------------------------------------------------
 	//-----------------------------------------------------------------------------
 
-	(* KEEP = "true" *) wire [31:0] config_register_A;
+	(* KEEP = "TRUE" *) wire [31:0] config_register_A;
 	(* KEEP = "TRUE" *) wire [31:0] config_register_B;
 
 	wire [ 4:0]	geoid 					= config_register_A[4:0];
@@ -272,7 +266,7 @@ xdma_0 #(
 	wire		disable_external_latch 	= config_register_B[30];
 	wire		fake_mode 				= config_register_B[31];
 
-	rw_register #(.myaddress(32'h0020)) AXI_CONFIG_REGISTER_A ( 
+	rw_register #(.myaddress(16'h0020)) AXI_CONFIG_REGISTER_A ( 
 		.databus		(databus),
 		.addressbus		(addressbus),
 		.readsignal		(readsignal),
@@ -280,7 +274,7 @@ xdma_0 #(
 		.busclk			(busclk),
 		.registerbits	(config_register_A));
 
-	rw_register #(.myaddress(32'h0040)) AXI_CONFIG_REGISTER_B ( 
+	rw_register #(.myaddress(16'h0028)) AXI_CONFIG_REGISTER_B ( 
 		.databus		(databus),
 		.addressbus		(addressbus),
 		.writesignal	(writesignal),

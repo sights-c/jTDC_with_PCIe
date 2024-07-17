@@ -14,9 +14,9 @@ create_clock -name sys_clk -period 5 [get_ports {brd_clk_p}]
 
 # --------------------------------------------------
 # pcie 
-set_property PACKAGE_PIN    T6          [get_ports pcie_rst_n];
-set_property IOSTANDARD     LVCMOS18    [get_ports pcie_rst_n];
-set_property PULLUP         true        [get_ports pcie_rst_n];
+set_property PACKAGE_PIN    J20             [get_ports pcie_rst_n];
+set_property IOSTANDARD     LVCMOS18        [get_ports pcie_rst_n];
+set_property PULLUP         true            [get_ports pcie_rst_n];
 
 set_property PACKAGE_PIN F10  [get_ports { pcie_refclkp }]; 
 
@@ -32,7 +32,7 @@ set_property PACKAGE_PIN D11   [get_ports { pcie_rxp[0] }];
 
 # --------------------------------------------------
 # LED pins output
-set_property -dict { PACKAGE_PIN B13  IOSTANDARD LVCMOS15 } [get_ports { USER_LED[0] }];
-set_property -dict { PACKAGE_PIN C13  IOSTANDARD LVCMOS15 } [get_ports { USER_LED[1] }];
-set_property -dict { PACKAGE_PIN D14  IOSTANDARD LVCMOS15 } [get_ports { USER_LED[2] }];
-set_property -dict { PACKAGE_PIN D15  IOSTANDARD LVCMOS15 } [get_ports { USER_LED[3] }];
+set_property -dict { PACKAGE_PIN B13  IOSTANDARD LVCMOS15 } [get_ports { user_led[0] }];
+set_property -dict { PACKAGE_PIN C13  IOSTANDARD LVCMOS15 } [get_ports { user_led[1] }];
+set_property -dict { PACKAGE_PIN D14  IOSTANDARD LVCMOS15 } [get_ports { user_led[2] }];
+set_property -dict { PACKAGE_PIN D15  IOSTANDARD LVCMOS15 } [get_ports { user_led[3] }];
