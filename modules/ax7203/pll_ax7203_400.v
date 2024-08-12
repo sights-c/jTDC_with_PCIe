@@ -3,6 +3,7 @@
 // "Output    Output      Phase     Duty      Pk-to-Pk        Phase"
 // "Clock    Freq (MHz) (degrees) Cycle (%) Jitter (ps)  Error (ps)"
 //----------------------------------------------------------------------------
+// CLK_OUT1___100.000______0.000______50.0______?____?
 // CLK_OUT2___200.000______0.000______50.0______?____?
 // CLK_OUT3___400.000______0.000______50.0______?____?
 //
@@ -13,13 +14,15 @@
 //----------------------------------------------------------------------------
 
 module pll_ax7203_400 (
-  input   logic CLK_IN,
-  output  logic CLK2,
-  output  logic CLK4 );
+  input   wire CLK_IN,
+  output  wire CLKHF,
+  output  wire CLK1,
+  output  wire CLK2 );
 	
-	logic clkin1;
-	logic clkout0;
-	logic clkout1;
+	wire clkin1;
+	wire clkout0;
+	wire clkout1;
+  wire clkout2;
 	
 	
 // input buffering ------------------------------------
@@ -28,9 +31,9 @@ IBUFG clkin1_buf (
   .I (CLK_IN));
 
 
-  logic locked;
-  logic clkfbout;
-  logic clkfbout_buf;
+  wire locked;
+  wire clkfbout;
+  wire clkfbout_buf;
 
 // PLLE2_BASE  : In order to incorporate this function into the design,
 //   Verilog   : the following instance declaration needs to be placed
@@ -60,16 +63,19 @@ PLLE2_BASE #(
   .CLKIN1_PERIOD(5.0),      // Input clock period in ns to ps resolution (i.e. 33.333 is 30 MHz).
 
   // CLKOUT0_DIVIDE - CLKOUT5_DIVIDE: Divide amount for each CLKOUT (1-128)
-  .CLKOUT0_DIVIDE(4),
-  .CLKOUT1_DIVIDE(2),
+  .CLKOUT0_DIVIDE(8),
+  .CLKOUT1_DIVIDE(4),
+  .CLKOUT2_DIVIDE(2),
 
   // CLKOUT0_DUTY_CYCLE - CLKOUT5_DUTY_CYCLE: Duty cycle for each CLKOUT (0.001-0.999).
   .CLKOUT0_DUTY_CYCLE(0.5),
   .CLKOUT1_DUTY_CYCLE(0.5),
+  .CLKOUT2_DUTY_CYCLE(0.5),
 
   // CLKOUT0_PHASE - CLKOUT5_PHASE: Phase offset for each CLKOUT (-360.000-360.000).
   .CLKOUT0_PHASE(0.0),
   .CLKOUT1_PHASE(0.0),
+  .CLKOUT2_PHASE(0.0),
 
   .DIVCLK_DIVIDE(1),        // Master division value, (1-56)
   .REF_JITTER1(0.001),        // Reference input jitter in UI, (0.000-0.999).
@@ -79,6 +85,7 @@ PLLE2_BASE_inst (
   // Clock Outputs: 1-bit (each) output: User configurable clock outputs
   .CLKOUT0(clkout0),   // 1-bit output: CLKOUT0
   .CLKOUT1(clkout1),   // 1-bit output: CLKOUT1
+  .CLKOUT2(clkout2),   // 1-bit output: CLKOUT2
 
   // Feedback Clocks: 1-bit (each) output: Clock feedback ports
   .CLKFBOUT(clkfbout), // 1-bit output: Feedback clock
@@ -102,12 +109,16 @@ BUFG clkf_buf (
   .O (clkfbout_buf),
   .I (clkfbout));
 
+BUFG CLKOUT0_buf (
+  .O   (CLKHF),
+  .I   (clkout0));
+
 BUFG CLKOUT1_buf (
   .O   (CLK2),
-  .I   (clkout0));
+  .I   (clkout1));
 
 BUFG CLKOUT2_buf (
   .O   (CLK4),
-  .I   (clkout1));
+  .I   (clkout2));
 
 endmodule

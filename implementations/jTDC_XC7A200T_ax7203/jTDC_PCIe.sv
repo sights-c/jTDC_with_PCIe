@@ -65,6 +65,7 @@ module  jTDC_PCIe #(
 
 	wire		sys_clk;
 	wire		busclk;
+	wire		CLK100;
 	wire		CLK200;
 	wire		CLK400;
 	
@@ -79,6 +80,7 @@ module  jTDC_PCIe #(
 
 	pll_ax7203_400 tdc_pll(
 		.CLK_IN		(sys_clk),
+		.CLKHF		(CLK100),
 		.CLK2		(CLK200),
 		.CLK4		(CLK400));
 
