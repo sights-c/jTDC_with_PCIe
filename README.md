@@ -10,7 +10,9 @@ If needed, both edges of the input signal can be recorded. Hence, if the input s
 
 So a single jTDC module can provide TDC, TOT-ADC, TRIGGER and SCALER, which could eliminate the need to split detector signals.
 
-The example implementation projects were created using Xilinx ISE Design Suite 14.4. The example implementations run on [ELB-VFB6](http://www.elbonn.de/cms/item.php?theme=elb-vme-vfb6&language=en) boards. The author is not affiliated with ELB. You are free to provide example imlementations for other plattforms.
+The VFB6 example implementation projects were created using Xilinx ISE Design Suite 14.4. The example implementations run on [ELB-VFB6](http://www.elbonn.de/cms/item.php?theme=elb-vme-vfb6&language=en) boards. The author is not affiliated with ELB. You are free to provide example imlementations for other plattforms.
+
+The AX7203 example implementation projects were created using  Xilinx Vivado 2018.3. The example implementations run on [AX7203](https://www.xilinx.com/products/boards-and-kits/1-1s6r42o.html) boards. You are free to provide example imlementations for other plattforms.
 
 ## Acknowledgements
 
