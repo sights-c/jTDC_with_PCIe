@@ -4,3 +4,6 @@
 [submodule "tools/jDaqLite"]
 	path = tools/jDaqLite
 	url = https://github.com/jobisoft/jDaqLite.git
+[submodule "documentation/AXI_spec_chinese"]	
+	path = documentation/AXI_spec_chinese
+	url = https://github.com/lizhirui/AXI_spec_chinese.git
