@@ -24,38 +24,38 @@
 
 module jTDC_PCIe(
     // System
-    input wire i_sys_clk_p,
-    input wire i_sys_clk_n,
-    input wire i_sys_rstn,
-    output wire CLK200,
-    output wire CLK400,
-    output wire user_lnk_up,
+    input   wire i_sys_clk_p,
+    input   wire i_sys_clk_n,
+    input   wire i_sys_rstn,
+    output  wire CLK200,
+    output  wire CLK400,
+    output  wire user_lnk_up,
 
     // PCIe
-    input wire i_pcie_rstn,
-    input wire i_pcie_refclkp, i_pcie_refclkn,
-    input wire i_pcie_rxp, i_pcie_rxn,
-    output wire o_pcie_txp, o_pcie_txn
+    input   wire i_pcie_rstn,
+    input   wire i_pcie_refclkp, i_pcie_refclkn,
+    input   wire i_pcie_rxp, i_pcie_rxn,
+    output  wire o_pcie_txp, o_pcie_txn
 );
 
 // ---------- setup registers --------------------------------------------------
 wire [31:0] statusregister;
-assign statusregister [7:0]   = 8'b00000001;      //-- Firmware version
-assign statusregister [13:8]  = 6'b000001;        //-- Firmware type
+assign statusregister [ 7: 0] = 8'b00000001;      //-- Firmware version
+assign statusregister [13: 8] = 6'b000001;        //-- Firmware type
 assign statusregister [19:14] = 6'b0;             //-- Board type Mezzanine_A
 assign statusregister [25:20] = 6'b0;             //-- Board type Mezzanine_B
 assign statusregister [31:26] = 6'b0;             //-- Board type Mezzanine_C
 
 // ---------- Board IO --------------------------------------------------
 IBUFDS   sys_clk_n_ibuf (
-    .I               ( i_sys_clk_p       ),
-    .IB              ( i_sys_clk_n       ),
-    .O               ( sys_clk         )
+    .I  ( i_sys_clk_p  ),
+    .IB ( i_sys_clk_n  ),
+    .O  ( sys_clk      )
 );
 
 IBUFDS   sys_reset_n_ibuf (
-    .I               ( i_sys_rstn       ),
-    .O               ( sys_rstn        )
+    .I  ( i_sys_rstn   ),
+    .O  ( sys_rstn     )
 );
 
 // ---------- pll --------------------------------------------------
@@ -121,22 +121,22 @@ wire pcie_rstn;
 
 // PCIe ref clock input buffer
 IBUFDS_GTE2 refclk_ibuf (
-    .CEB             ( 1'b0              ),
-    .I               ( i_pcie_refclkp    ),
-    .IB              ( i_pcie_refclkn    ),
-    .O               ( pcie_refclk       ),
-    .ODIV2           (                   )
+    .CEB    ( 1'b0              ),
+    .I      ( i_pcie_refclkp    ),
+    .IB     ( i_pcie_refclkn    ),
+    .O      ( pcie_refclk       ),
+    .ODIV2  (                   )
 );
 
 // PCIe reset input buffer
 IBUF   sys_reset_n_ibuf (
-    .I               ( i_pcie_rstn       ),
-    .O               ( pcie_rstn         )
+    .I  ( i_pcie_rstn       ),
+    .O  ( pcie_rstn         )
 );
 
 // ---------- PCIe Interuptions --------------------------------------------------
-reg [7:0] usr_irq_req;
-wire [7:0] usr_irq_ack;
+reg   [7:0] usr_irq_req;
+wire  [7:0] usr_irq_ack;
 
 always @(posedge sys_clk or negedge sys_rstn) begin
     if(!sys_rstn) begin
@@ -146,127 +146,85 @@ always @(posedge sys_clk or negedge sys_rstn) begin
     end
 end
 
-// ---------- AXI4 bus --------------------------------------------------
-wire axi_aclk;                                            // output wire axi_aclk
-wire axi_aresetn;                                      // output wire axi_aresetn
+// ---------- AXI4Lite bus --------------------------------------------------
+wire          axi_aclk;             // output wire axi_aclk
+wire          axi_aresetn;          // output wire axi_aresetn
 
-wire axi_awready;                                  // input wire m_axi_awready
-wire axi_wready;                                    // input wire m_axi_wready
-wire axi_bid;                                          // input wire [3 : 0] m_axi_bid
-wire axi_bresp;                                      // input wire [1 : 0] m_axi_bresp
-wire axi_bvalid;                                    // input wire m_axi_bvalid
-wire axi_arready;                                  // input wire m_axi_arready
-wire axi_rid;                                          // input wire [3 : 0] m_axi_rid
-wire axi_rdata;                                      // input wire [63 : 0] m_axi_rdata
-wire axi_rresp;                                      // input wire [1 : 0] m_axi_rresp
-wire axi_rlast;                                      // input wire m_axi_rlast
-wire axi_rvalid;                                    // input wire m_axi_rvalid
-wire axi_awid;                                        // output wire [3 : 0] m_axi_awid
-wire axi_awaddr;                                    // output wire [63 : 0] m_axi_awaddr
-wire axi_awlen;                                      // output wire [7 : 0] m_axi_awlen
-wire axi_awsize;                                    // output wire [2 : 0] m_axi_awsize
-wire axi_awburst;                                  // output wire [1 : 0] m_axi_awburst
-wire axi_awprot;                                    // output wire [2 : 0] m_axi_awprot
-wire axi_awvalid;                                  // output wire m_axi_awvalid
-wire axi_awlock;                                    // output wire m_axi_awlock
-wire axi_awcache;                                  // output wire [3 : 0] m_axi_awcache
-wire axi_wdata;                                      // output wire [63 : 0] m_axi_wdata
-wire axi_wstrb;                                      // output wire [7 : 0] m_axi_wstrb
-wire axi_wlast;                                      // output wire m_axi_wlast
-wire axi_wvalid;                                    // output wire m_axi_wvalid
-wire axi_bready;                                    // output wire m_axi_bready
-wire axi_arid;                                        // output wire [3 : 0] m_axi_arid
-wire axi_araddr;                                    // output wire [63 : 0] m_axi_araddr
-wire axi_arlen;                                      // output wire [7 : 0] m_axi_arlen
-wire axi_arsize;                                    // output wire [2 : 0] m_axi_arsize
-wire axi_arburst;                                  // output wire [1 : 0] m_axi_arburst
-wire axi_arprot;                                    // output wire [2 : 0] m_axi_arprot
-wire axi_arvalid;                                  // output wire m_axi_arvalid
-wire axi_arlock;                                    // output wire m_axi_arlock
-wire axi_arcache;                                  // output wire [3 : 0] m_axi_arcache
-wire axi_rready ;                                   // output wire m_axi_rready
+wire [31: 0]  axil_awaddr;          // output wire [31 : 0] m_axil_awaddr
+wire [ 2: 0]  axil_awprot;          // output wire [2 : 0] m_axil_awprot
+wire          axil_awvalid;         // output wire m_axil_awvalid
+wire          axil_awready;         // input wire m_axil_awready
+wire [31: 0]  axil_wdata;           // output wire [31 : 0] m_axil_wdata
+wire [ 3: 0]  axil_wstrb;           // output wire [3 : 0] m_axil_wstrb
+wire          axil_wvalid;          // output wire m_axil_wvalid
+wire          axil_wready;          // input wire m_axil_wready
+wire          axil_bvalid;          // input wire m_axil_bvalid
+wire [ 1: 0]  axil_bresp;           // input wire [1 : 0] m_axil_bresp
+wire          axil_bready;          // output wire m_axil_bready
+wire [31: 0]  axil_araddr;          // output wire [31 : 0] m_axil_araddr
+wire [ 2: 0]  axil_arprot;          // output wire [2 : 0] m_axil_arprot
+wire          axil_arvalid;         // output wire m_axil_arvalid
+wire          axil_arready;         // input wire m_axil_arready
+wire [31: 0]  axil_rdata;           // input wire [31 : 0] m_axil_rdata
+wire [ 1: 0]  axil_rresp;           // input wire [1 : 0] m_axil_rresp
+wire          axil_rvalid;          // input wire m_axil_rvalid
+wire          axil_rready;          // output wire m_axil_rready
 
 // ---------- XMDA Instantiation --------------------------------------------------
 xdma_0 jTDC_PCIe_xdma (
-  .sys_clk(pcie_refclk),                                              // input wire sys_clk
-  .sys_rst_n(pcie_rstn),                                          // input wire sys_rst_n
-  .user_lnk_up(o_user_lnk_up),                                      // output wire user_lnk_up
+  .sys_clk(pcie_refclk),            // input wire sys_clk
+  .sys_rst_n(pcie_rstn),            // input wire sys_rst_n
+  .user_lnk_up(o_user_lnk_up),      // output wire user_lnk_up
   
-  .pci_exp_txp(o_pci_exp_txp),                                      // output wire [0 : 0] pci_exp_txp
-  .pci_exp_txn(o_pci_exp_txn),                                      // output wire [0 : 0] pci_exp_txn
-  .pci_exp_rxp(i_pci_exp_rxp),                                      // input wire [0 : 0] pci_exp_rxp
-  .pci_exp_rxn(i_pci_exp_rxn),                                      // input wire [0 : 0] pci_exp_rxn
+  .pci_exp_txp(o_pci_exp_txp),      // output wire [0 : 0] pci_exp_txp
+  .pci_exp_txn(o_pci_exp_txn),      // output wire [0 : 0] pci_exp_txn
+  .pci_exp_rxp(i_pci_exp_rxp),      // input wire [0 : 0] pci_exp_rxp
+  .pci_exp_rxn(i_pci_exp_rxn),      // input wire [0 : 0] pci_exp_rxn
   
-  .axi_aclk(axi_aclk),                                            // output wire axi_aclk
-  .axi_aresetn(axi_aresetn),                                      // output wire axi_aresetn
+  .axi_aclk(axi_aclk),              // output wire axi_aclk
+  .axi_aresetn(axi_aresetn),        // output wire axi_aresetn
   
-  .usr_irq_req(usr_irq_req),                                      // input wire [7 : 0] usr_irq_req
-  .usr_irq_ack(usr_irq_ack),                                      // output wire [7 : 0] usr_irq_ack
-  
-  .m_axi_awready(axi_awready),                                  // input wire m_axi_awready
-  .m_axi_wready(axi_wready),                                    // input wire m_axi_wready
-  .m_axi_bid(axi_bid),                                          // input wire [3 : 0] m_axi_bid
-  .m_axi_bresp(axi_bresp),                                      // input wire [1 : 0] m_axi_bresp
-  .m_axi_bvalid(axi_bvalid),                                    // input wire m_axi_bvalid
-  .m_axi_arready(axi_arready),                                  // input wire m_axi_arready
-  .m_axi_rid(axi_rid),                                          // input wire [3 : 0] m_axi_rid
-  .m_axi_rdata(axi_rdata),                                      // input wire [63 : 0] m_axi_rdata
-  .m_axi_rresp(axi_rresp),                                      // input wire [1 : 0] m_axi_rresp
-  .m_axi_rlast(axi_rlast),                                      // input wire m_axi_rlast
-  .m_axi_rvalid(axi_rvalid),                                    // input wire m_axi_rvalid
-  .m_axi_awid(axi_awid),                                        // output wire [3 : 0] m_axi_awid
-  .m_axi_awaddr(axi_awaddr),                                    // output wire [63 : 0] m_axi_awaddr
-  .m_axi_awlen(axi_awlen),                                      // output wire [7 : 0] m_axi_awlen
-  .m_axi_awsize(axi_awsize),                                    // output wire [2 : 0] m_axi_awsize
-  .m_axi_awburst(axi_awburst),                                  // output wire [1 : 0] m_axi_awburst
-  .m_axi_awprot(axi_awprot),                                    // output wire [2 : 0] m_axi_awprot
-  .m_axi_awvalid(axi_awvalid),                                  // output wire m_axi_awvalid
-  .m_axi_awlock(axi_awlock),                                    // output wire m_axi_awlock
-  .m_axi_awcache(axi_awcache),                                  // output wire [3 : 0] m_axi_awcache
-  .m_axi_wdata(axi_wdata),                                      // output wire [63 : 0] m_axi_wdata
-  .m_axi_wstrb(axi_wstrb),                                      // output wire [7 : 0] m_axi_wstrb
-  .m_axi_wlast(axi_wlast),                                      // output wire m_axi_wlast
-  .m_axi_wvalid(axi_wvalid),                                    // output wire m_axi_wvalid
-  .m_axi_bready(axi_bready),                                    // output wire m_axi_bready
-  .m_axi_arid(axi_arid),                                        // output wire [3 : 0] m_axi_arid
-  .m_axi_araddr(axi_araddr),                                    // output wire [63 : 0] m_axi_araddr
-  .m_axi_arlen(axi_arlen),                                      // output wire [7 : 0] m_axi_arlen
-  .m_axi_arsize(axi_arsize),                                    // output wire [2 : 0] m_axi_arsize
-  .m_axi_arburst(axi_arburst),                                  // output wire [1 : 0] m_axi_arburst
-  .m_axi_arprot(axi_arprot),                                    // output wire [2 : 0] m_axi_arprot
-  .m_axi_arvalid(axi_arvalid),                                  // output wire m_axi_arvalid
-  .m_axi_arlock(axi_arlock),                                    // output wire m_axi_arlock
-  .m_axi_arcache(axi_arcache),                                  // output wire [3 : 0] m_axi_arcache
-  .m_axi_rready(axi_rready),                                    // output wire m_axi_rready
-  
-//   .cfg_mgmt_addr(cfg_mgmt_addr),                                  // input wire [18 : 0] cfg_mgmt_addr
-//   .cfg_mgmt_write(cfg_mgmt_write),                                // input wire cfg_mgmt_write
-//   .cfg_mgmt_write_data(cfg_mgmt_write_data),                      // input wire [31 : 0] cfg_mgmt_write_data
-//   .cfg_mgmt_byte_enable(cfg_mgmt_byte_enable),                    // input wire [3 : 0] cfg_mgmt_byte_enable
-//   .cfg_mgmt_read(cfg_mgmt_read),                                  // input wire cfg_mgmt_read
-//   .cfg_mgmt_read_data(cfg_mgmt_read_data),                        // output wire [31 : 0] cfg_mgmt_read_data
-//   .cfg_mgmt_read_write_done(cfg_mgmt_read_write_done),            // output wire cfg_mgmt_read_write_done
-//   .cfg_mgmt_type1_cfg_reg_access(cfg_mgmt_type1_cfg_reg_access)  // input wire cfg_mgmt_type1_cfg_reg_access
+  .usr_irq_req(usr_irq_req),        // input wire [7 : 0] usr_irq_req
+  .usr_irq_ack(usr_irq_ack),        // output wire [7 : 0] usr_irq_ack
+
+  .m_axil_awaddr(axil_awaddr),      // output wire [31 : 0] m_axil_awaddr
+  .m_axil_awprot(axil_awprot),      // output wire [2 : 0] m_axil_awprot
+  .m_axil_awvalid(axil_awvalid),    // output wire m_axil_awvalid
+  .m_axil_awready(axil_awready),    // input wire m_axil_awready
+
+  .m_axil_wdata(axil_wdata),        // output wire [31 : 0] m_axil_wdata
+  .m_axil_wstrb(axil_wstrb),        // output wire [3 : 0] m_axil_wstrb
+  .m_axil_wvalid(axil_wvalid),      // output wire m_axil_wvalid
+  .m_axil_wready(axil_wready),      // input wire m_axil_wready
+
+  .m_axil_bvalid(axil_bvalid),      // input wire m_axil_bvalid
+  .m_axil_bresp(axil_bresp),        // input wire [1 : 0] m_axil_bresp
+  .m_axil_bready(axil_bready),      // output wire m_axil_bready
+
+  .m_axil_araddr(axil_araddr),      // output wire [31 : 0] m_axil_araddr
+  .m_axil_arprot(axil_arprot),      // output wire [2 : 0] m_axil_arprot
+  .m_axil_arvalid(axil_arvalid),    // output wire m_axil_arvalid
+  .m_axil_arready(axil_arready),    // input wire m_axil_arready
+
+  .m_axil_rdata(axil_rdata),        // input wire [31 : 0] m_axil_rdata
+  .m_axil_rresp(axil_rresp),        // input wire [1 : 0] m_axil_rresp
+  .m_axil_rvalid(axil_rvalid),      // input wire m_axil_rvalid
+  .m_axil_rready(axil_rready),      // output wire m_axil_rready
 );
 
 // ---------- jTDC internal bus --------------------------------------------------
-wire [31:0] D_INT;
-wire [15:0] A_INT;
-wire READ_INT;
-wire WRITE_INT;
-wire DTACK_INT;
-wire CLKBUS;
-wire writesignal;
-wire readsignal;
-wire [15:0] addressbus;
-wire [31:0] databus;
+wire          CLKBUS;
+wire          writesignal;
+wire          readsignal;
+wire [15: 0]  addressbus;
+wire [31: 0]  databus;
 
 // ---------- axi4_interface instatiation --------------------------------------------------
-axi4_interface axi4_interface_inst(
+axi4lite_interface axi4lite_interface_inst(
   .sys_clk(sys_clk),
   .sys_rstn(sys_rstn),
 
-  .CLKBUS(CLKBUS),
+  .statusregister(statusregister),
   .writesignal(writesignal),
   .readsignal(readsignal),
   .addressbus(addressbus),
@@ -275,56 +233,24 @@ axi4_interface axi4_interface_inst(
   .axi_aclk(axi_aclk),
   .axi_aresetn(axi_aresetn),
   
-  .s_axi_awready(axi_awready),
-  .s_axi_wready(axi_wready),
-  .s_axi_bid(axi_bid),
-  .s_axi_bresp(axi_bresp),
-  .s_axi_bvalid(axi_bvalid),
-  .s_axi_arready(axi_arready),
-  .s_axi_rid(axi_rid),
-  .s_axi_rdata(axi_rdata),
-  .s_axi_rresp(axi_rresp),
-  .s_axi_rlast(axi_rlast),
-  .s_axi_rvalid(axi_rvalid),
-  .s_axi_awid(axi_awid),
-  .s_axi_awaddr(axi_awaddr),
-  .s_axi_awlen(axi_awlen),
-  .s_axi_awsize(axi_awsize),
-  .s_axi_awburst(axi_awburst),
-  .s_axi_awprot(axi_awprot),
-  .s_axi_awvalid(axi_awvalid),
-  .s_axi_awlock(axi_awlock),
-  .s_axi_awcache(axi_awcache),
-  .s_axi_wdata(axi_wdata),
-  .s_axi_wstrb(axi_wstrb),
-  .s_axi_wlast(axi_wlast),
-  .s_axi_wvalid(axi_wvalid),
-  .s_axi_bready(axi_bready),
-  .s_axi_arid(axi_arid),
-  .s_axi_araddr(axi_araddr),
-  .s_axi_arlen(axi_arlen),
-  .s_axi_arsize(axi_arsize),
-  .s_axi_arburst(axi_arburst),
-  .s_axi_arprot(axi_arprot),
-  .s_axi_arvalid(axi_arvalid),
-  .s_axi_arlock(axi_arlock),
-  .s_axi_arcache(axi_arcache),
-  .s_axi_rready(axi_rready)
+  .s_axil_awaddr(axil_awaddr),
+  .s_axil_awprot(axil_awprot),
+  .s_axil_awvalid(axil_awvalid),
+  .s_axil_awready(axil_awready),
+  .s_axil_wdata(axil_wdata),
+  .s_axil_wstrb(axil_wstrb),
+  .s_axil_wvalid(axil_wvalid),
+  .s_axil_wready(axil_wready),
+  .s_axil_bvalid(axil_bvalid),
+  .s_axil_bresp(axil_bresp),
+  .s_axil_bready(axil_bready),
+  .s_axil_araddr(axil_araddr),
+  .s_axil_arprot(axil_arprot),
+  .s_axil_arvalid(axil_arvalid),
+  .s_axil_arready(axil_arready),
+  .s_axil_rdata(axil_rdata),
+  .s_axil_rresp(axil_rresp),
+  .s_axil_rvalid(axil_rvalid),
+  .s_axil_rready(axil_rready),
 );
-
-// ---------- axi4_interface instatiation --------------------------------------------------
-bus_interface_vfb6 BUS_INT (
-  .board_databus(D_INT),
-  .board_address(A_INT),
-  .board_read(READ_INT),
-  .board_write(WRITE_INT),
-  .board_dtack(DTACK_INT),
-  .CLK(CLKBUS),
-  .statusregister(statusregister),
-  .internal_databus(databus),
-  .internal_address(addressbus),
-  .internal_read(readsignal),
-  .internal_write(writesignal)
-);
-
 endmodule
