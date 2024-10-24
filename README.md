@@ -25,3 +25,5 @@ The jTDC is provided 'as is', you may use and modify it according to the GNU Gen
 ## Xilinx Documentatioin
 - 7 Series FPGAs Clocking Resources User Guide [UG472](https://docs.amd.com/v/u/en-US/ug472_7Series_Clocking)
 - Design Suite 7 Series FPGA and Zynq-7000 All Prgrammable SoC Libraries Guide [UG953](https://docs.amd.com/v/u/2017.3-English/ug953-vivado-7series-libraries)
+- Spartan-6 FPGA DSP48A1 Slice User Guide [UG389](https://0x04.net/~mwk/xidocs/ug/xc6s-dsp.pdf)
+- 7 Series DSP48E1 Slice User Guide [UG479](https://0x04.net/~mwk/xidocs/ug/ug479_7Series_DSP48E1.pdf)

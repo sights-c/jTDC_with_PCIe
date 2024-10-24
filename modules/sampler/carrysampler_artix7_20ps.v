@@ -39,7 +39,7 @@ module CHAIN_CELL (CINIT, CI, CO, DO, CLK);
 	  .O(),               // 4-bit carry chain XOR data out
 	  .CI(CI),            // 1-bit carry cascade input
 	  .CYINIT(CINIT),     // 1-bit carry initialization
-	  .DI(),              // 4-bit carry-MUX data in
+	  .DI(4'b0000),       // 4-bit carry-MUX data in
 	  .S(4'b1111)         // 4-bit carry-MUX select input
 	);
 	assign CO = carry_out[3];
