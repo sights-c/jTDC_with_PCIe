@@ -43,6 +43,7 @@ module dsp_multioption_counter #(
    
 	wire [47:0] DSPOUT;
 	wire CARRYOUT;
+	assign CARRYOUT = DSPOUT[47]; // CARRYOUT signals of DSP48E1 are not valid for two-input accumulator(A:B+C+P)
 
 	wire [1:0] OPMODE_X = 2'b11; // send {D,A,B} to postadder
 	wire [1:0] OPMODE_Z = 2'b10; // send P to postadder
@@ -89,7 +90,7 @@ module dsp_multioption_counter #(
 		.USE_MULT("NONE"),            	  // Select multiplier usage ("MULTIPLY", "DYNAMIC", or "NONE")
 		.USE_SIMD("ONE48"),               // SIMD selection ("ONE48", "TWO24", "FOUR12")
 		// Pattern Detector Attributes: Pattern Detection Configuration
-		.AUTORESET_PATDET("RESET_MATCH"), // "NO_RESET", "RESET_MATCH", "RESET_NOT_MATCH" 
+		.AUTORESET_PATDET("NO_RESET"), // "NO_RESET", "RESET_MATCH", "RESET_NOT_MATCH" 
 		.MASK(48'h3fffffffffff),          // 48-bit mask value for pattern detect (1=ignore)
 		.PATTERN(48'h000000000000),       // 48-bit pattern match for pattern detect
 		.SEL_MASK("MASK"),                // "C", "MASK", "ROUNDING_MODE1", "ROUNDING_MODE2" 
@@ -124,7 +125,7 @@ module dsp_multioption_counter #(
 		.PATTERNDETECT(),   			 // 1-bit output: Pattern detect output
 		.UNDERFLOW(),           		 // 1-bit output: Underflow in add/acc output
 		// Data: 4-bit (each) output: Data Ports
-		.CARRYOUT({CARRYOUT,3'bz}),    	 // 4-bit output: Carry output
+		.CARRYOUT(),    				 // 4-bit output: Carry output
 		.P(DSPOUT),                	 	 // 48-bit output: Primary data output
 		// Cascade: 30-bit (each) input: Cascade Ports
 		.ACIN(),                     	 // 30-bit input: A cascade data input
@@ -133,14 +134,14 @@ module dsp_multioption_counter #(
 		.MULTSIGNIN(),         			 // 1-bit input: Multiplier sign input
 		.PCIN(),                     	 // 48-bit input: P cascade input
 		// Control: 4-bit (each) input: Control Inputs/Status Bits
-		.ALUMODE(4'b0110),               // 4-bit input: ALU control input
+		.ALUMODE(4'b0000),               // 4-bit input: ALU control input
 		.CARRYINSEL(3'b00),         	 // 3-bit input: Carry select input
 		.CLK(countClock),              	 // 1-bit input: Clock input
 		.INMODE(),                 		 // 5-bit input: INMODE control input
 		.OPMODE({1'b0,OPMODE_Z,2'b00,OPMODE_X}),	// 7-bit input: Operation mode input
 		// Data: 30-bit (each) input: Data Ports
 		.A(30'b0),                    	 // 30-bit input: A data input
-		.B(18'b10_00000000_00000000),    // 18-bit input: B data input
+		.B(18'b01_00000000_00000000),    // 18-bit input: B data input
 		.C(48'b0),                       // 48-bit input: C data input
 		.CARRYIN(1'b0),               	 // 1-bit input: Carry input signal
 		.D(25'b0),                       // 25-bit input: D data input
@@ -182,7 +183,7 @@ module dsp_multioption_counter #(
 
 	end			
 
-	assign countout[30:0] = DSPOUT[47:17];
+	assign countout[30:0] = DSPOUT[46:16];
    	assign countout[31] = overflow;
 
 endmodule
