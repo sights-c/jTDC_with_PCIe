@@ -9,7 +9,7 @@
 // Module Name: jTDC_PCIe
 // Project Name: jTDC_PCIe
 // Target Devices: xc7a200tfbg484-2
-// Tool Versions: 2018.3
+// Tool Versions: 2023.1
 // Description: A transplatation of jTDC into AX7203 board
 // 
 // Dependencies: 
@@ -19,6 +19,7 @@
 // Revision 0.02 - Instantiation of xdma
 // Revision 0.03 - Instantiation of axi-interface
 // Revision 1.00 - tested implementation with 32 channels, 4 lanes pcie
+// Revision 1.01 - revision 0.01
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
@@ -34,9 +35,6 @@ module jTDC_PCIe (
   output  wire [3:0]  o_pci_exp_txp,
 
   inout   wire [63:0] MEZ,
-
-  input   wire        test_in_p,
-  input   wire        test_in_n,
 
   input   wire [3:0]  NIM_IN,
   // output  wire [3:0]  NIM_OUT,
