@@ -26,9 +26,9 @@ wire clkout1;
 
 PLLE2_BASE #(
     .BANDWIDTH("HIGH"),  // OPTIMIZED, HIGH, LOW
-    .CLKFBOUT_MULT(4),        // Multiply value for all CLKOUT, (2-64)
+    .CLKFBOUT_MULT(8),        // Multiply value for all CLKOUT, (2-64)
     .CLKFBOUT_PHASE(0.0),     // Phase offset in degrees of CLKFB, (-360.000-360.000).
-    .CLKIN1_PERIOD(5.0),      // Input clock period in ns to ps resolution (i.e. 33.333 is 30 MHz).
+    .CLKIN1_PERIOD(8.0),      // Input clock period in ns to ps resolution (i.e. 33.333 is 30 MHz).
 
     // CLKOUT0_DIVIDE - CLKOUT5_DIVIDE: Divide amount for each CLKOUT (1-128)
     .CLKOUT0_DIVIDE(4),
