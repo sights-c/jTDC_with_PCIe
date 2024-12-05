@@ -40,7 +40,7 @@ PLLE2_BASE #(
 
     // CLKOUT0_PHASE - CLKOUT5_PHASE: Phase offset for each CLKOUT (-360.000-360.000).
     .CLKOUT0_PHASE(0.0),
-    .CLKOUT1_PHASE(0.0),
+    .CLKOUT1_PHASE(45.0),
 
     .DIVCLK_DIVIDE(1),        // Master division value, (1-56)
     .REF_JITTER1(0.001),        // Reference input jitter in UI, (0.000-0.999).
