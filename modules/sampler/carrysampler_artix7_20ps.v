@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------
 //--                                                                 --
 //-- Copyright (C) 2015 John Bieling                                 --
+//-- Copyright (C) 2024 Chen Riguang                                 --
 //--                                                                 --
 //-- This program is free software; you can redistribute it and/or   --
 //-- modify it under the terms of the GNU General Public License as  --
@@ -62,26 +63,26 @@ module carry_sampler_artix7 (d, q, CLK);
 	input wire CLK;
 	output wire [bits-1:0] q;
 
-	wire [(bits*resolution/4)-1:0] connect;
+	wire [(bits*resolution/4):0] connect;
 	wire [bits*resolution-1:0] register_out;
 	
 	genvar i,j;
 	generate
 	
 		CHAIN_CELL FirstCell(
-		  .DO({register_out[2],register_out[3],register_out[0],register_out[1]}),
+		  .DO(),
 		  .CINIT(d),
 		  .CI(1'b0),
 		  .CO(connect[0]),
 		  .CLK(CLK)
 		);			
 	
-		for (i=1; i < bits*resolution/4; i=i+1) begin : carry_chain			
+		for (i=0; i < bits*resolution/4; i=i+1) begin : carry_chain			
 			CHAIN_CELL MoreCells(
 			  .DO({register_out[4*i+2],register_out[4*i+3],register_out[4*i+0],register_out[4*i+1]}),	//swapped to avoid empty bins
 			  .CINIT(1'b0),
-			  .CI(connect[i-1]),
-			  .CO(connect[i]),
+			  .CI(connect[i]),
+			  .CO(connect[i+1]),
 			  .CLK(CLK)
 			);			
 		end	
