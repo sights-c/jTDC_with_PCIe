@@ -15,11 +15,6 @@
 // Dependencies: 
 // 
 // Revision:
-// Revision 0.01 - File Created
-// Revision 0.02 - Instantiation of xdma
-// Revision 0.03 - Instantiation of axi-interface
-// Revision 1.00 - tested implementation with 32 channels, 4 lanes pcie
-// Revision 1.01 - revision 0.01
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +77,7 @@ pll_ax7203_400 PLL_TDC (
 parameter fw = 8'h30;
 
 parameter resolution = 2;       //readout every second carry step
-parameter bits = 96;            //empirical value for resolution=2 on VFB6
+parameter bits = 72;            //empirical value for resolution=2 on VFB6
 parameter encodedbits = 9;      //includes hit bit
 
 parameter fifocounts = 15;      //max event size: (fifocounts+1)*1024-150;
@@ -269,7 +264,7 @@ generate
           .CLK(CLK400));
 
       wire scaler;
-      encode_96bit_pattern #(.encodedbits(encodedbits)) ENCODE (
+      encode_72bit_pattern #(.encodedbits(encodedbits)) ENCODE (
           .edgechoice(1'b1), //sending the signal inverted into the chain gives better results
           .d(sample),
           .enable(tdc_enable[i]),
