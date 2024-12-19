@@ -65,12 +65,12 @@ pcie_interface_inst (
 );
 
 // ---------- Clock setup ----------------------------------------
-wire CLK200;
-wire CLK400;
-pll_ax7203_400 PLL_TDC (
+wire CLK2X;
+wire CLK4X;
+pll_ax7203 PLL_TDC (
   .CLKIN(busclk), 
-  .CLK200(CLK200),
-  .CLK400(CLK400)
+  .CLK2X(CLK2X),
+  .CLK4X(CLK4X)
 );
 
 // ---------- basic setup ----------------------------------------
@@ -150,7 +150,7 @@ toggle_register #(.myaddress(16'h0024)) BUS_TRIGGER_REGISTER (
 
 //cross clock domain
 reg [31:0] trigger_register;
-always@(posedge CLK200) 
+always@(posedge CLK2X) 
 begin
   trigger_register <= trigger_register_wire;
 end
@@ -178,21 +178,21 @@ wire bus_counter_reset;
 datapipe #(.data_width(1),.pipe_steps(2)) counter_reset_pipe ( 
   .data(trigger_register[1]),
   .piped_data(bus_counter_reset),
-  .CLK(CLK200));  
+  .CLK(CLK2X));  
 
 //-- toggle bit 2: bus_counter_latch
 wire bus_counter_latch;
 datapipe #(.data_width(1),.pipe_steps(1)) counter_latch_pipe ( 
   .data(trigger_register[2]),
   .piped_data(bus_counter_latch),
-  .CLK(CLK200));
+  .CLK(CLK2X));
 
 //-- toggle bit 3: output_reset
 wire output_reset = trigger_register[3];
 
 //-- toggle bit 6: generate fake data input for busyshift measurement
 wire fake_data;
-signal_clipper fake_data_clip ( .sig(trigger_register[6]), .CLK(CLK200), .clipped_sig(fake_data));
+signal_clipper fake_data_clip ( .sig(trigger_register[6]), .CLK(CLK2X), .clipped_sig(fake_data));
 
 // ---------- Bus Enable Register ----------------------------------------
 (* KEEP = "TRUE" *) wire [95:0] enable_register;
@@ -227,8 +227,8 @@ reg counter_reset;
 
 //the leading edge of the "busy & latch" signal is the actual latch, which is used only to latch the input scaler
 //while the "busy & latch" signal is asserted, the input scaler will not count (if stop_counting_on_busy is set)
-leading_edge_extractor LATCH_EXTRACTOR (.sig(NIM_IN[0]), .CLK(CLK200), .unclipped_extend(busyextend), .clipped_sig(latch), .unclipped_sig(raw_busy) );
-always@(posedge CLK200)
+leading_edge_extractor LATCH_EXTRACTOR (.sig(NIM_IN[0]), .CLK(CLK2X), .unclipped_extend(busyextend), .clipped_sig(latch), .unclipped_sig(raw_busy) );
+always@(posedge CLK2X)
 begin
   busy <= stop_counting_on_busy & raw_busy;
   counter_latch <= bus_counter_latch | (latch & ~disable_external_latch);
@@ -261,15 +261,15 @@ generate
       carry_sampler_artix7 #(.bits(bits),.resolution(resolution)) SAMPLER (
           .d(~tdc_channel[i]), 
           .q(sample),
-          .CLK(CLK400));
+          .CLK(CLK4X));
 
       wire scaler;
       encode_72bit_pattern #(.encodedbits(encodedbits)) ENCODE (
           .edgechoice(1'b1), //sending the signal inverted into the chain gives better results
           .d(sample),
           .enable(tdc_enable[i]),
-          .CLK400(CLK400),
-          .CLK200(CLK200),
+          .CLK400(CLK4X),
+          .CLK200(CLK2X),
           .code(tdc_data_codes[(i+1)*encodedbits-1:i*encodedbits]),
           .tdc_hit(tdc_hits[i]),
           .scaler_hit(scaler));
@@ -277,7 +277,7 @@ generate
       //fake scaler hit for busyshift determination
       reg scaler_buffer;
       if (i==1) begin
-          always@(posedge CLK200)
+          always@(posedge CLK2X)
           begin
               if (fake_mode == 1'b1) begin
                   scaler_buffer <= fake_data;
@@ -286,7 +286,7 @@ generate
               end
           end
       end else begin
-          always@(posedge CLK200)
+          always@(posedge CLK2X)
           begin
               scaler_buffer <= scaler;
           end
@@ -321,7 +321,7 @@ reg [2:0] trigger_choice_0;
 reg [2:0] trigger_choice_1;
 reg [1:0] trigger_out;
 
-always@(posedge CLK200)
+always@(posedge CLK2X)
 begin
 
   // generate trigger output signal
@@ -365,7 +365,7 @@ jTDC_core #(.tdc_channels(tdc_channels), .encodedbits(encodedbits), .fifocounts(
   .clock_limit(clock_limit), 
   .geoid(geoid), 
   .iBIT(iBIT), 
-  .CLK200(CLK200),
+  .CLK200(CLK2X),
   .CLKBUS(busclk), 
   .event_fifo_readrequest(event_fifo_readrequest),
   .data_fifo_readrequest(data_fifo_readrequest), 
@@ -412,7 +412,7 @@ generate
       BRAMSHIFT_512 #(.shift_bitsize(9),.width(4),.input_pipe_steps(1),.output_pipe_steps(1)) BRAM_BUSYSHIFT (
           .d({'b0,scaler_hits}), 
           .q(shifted_hits), 
-          .CLK(CLK200), .shift(busyshift));
+          .CLK(CLK2X), .shift(busyshift));
 
       //input counter
       for (i=0; i < 128; i=i+1) begin : INPUT_HITS_COUNTER
@@ -426,7 +426,7 @@ generate
               reg busycount_0;
               reg busycount_1;
               reg input_buffer;
-              always@(posedge CLK200) begin
+              always@(posedge CLK2X) begin
                   input_buffer <= dutyline;
                   busycount_0 <= shifted_hits[i] && ~busy;
                   busycount_1 <= busycount_0;
@@ -436,14 +436,14 @@ generate
 
               wire [31:0] input_counts;
               dsp_multioption_counter #(.clip_count(0)) INPUT_COUNTER (
-                  .countClock(CLK200), 
+                  .countClock(CLK2X), 
                   .count(busycount),
                   .reset(counter_reset),
                   .countout(input_counts));
 
               wire [31:0] input_latched_counts;
               datalatch #(.latch_pipe_steps(1)) INPUT_COUNTER_DATALATCH  (
-                  .CLK(CLK200),
+                  .CLK(CLK2X),
                   .latch(counter_latch),
                   .data(input_counts),
                   .latched_data(input_latched_counts));
@@ -459,14 +459,14 @@ generate
       //referenz clock counter (to be able to calculate rates)
       wire [31:0] pureclkcounts;
       dsp_multioption_counter #(.clip_count(0)) PURE_CLOCK_COUNTER (
-          .countClock(CLK200), 
+          .countClock(CLK2X), 
           .count(!busy), 
           .reset(counter_reset),  
           .countout(pureclkcounts));
 
       wire [31:0] clklatch;
       datalatch #(.latch_pipe_steps(1)) CLOCK_COUNTER_DATALATCH  (
-          .CLK(CLK200),
+          .CLK(CLK2X),
           .latch(counter_latch),
           .data(pureclkcounts),
           .latched_data(clklatch));
@@ -511,7 +511,7 @@ output_shaper TRIGGER_SHAPER_0 (
   .d(trigger_out[0]),
   .hightime(hightime),
   .deadtime(deadtime),
-  .CLK(CLK200),
+  .CLK(CLK2X),
   .pulse(trigger_output[0]),
   .reset(output_reset));
 
@@ -519,7 +519,7 @@ output_shaper TRIGGER_SHAPER_1 (
   .d(trigger_out[1]),
   .hightime(hightime),
   .deadtime(deadtime),
-  .CLK(CLK200),
+  .CLK(CLK2X),
   .pulse(trigger_output[1]),
   .reset(output_reset));	
 
